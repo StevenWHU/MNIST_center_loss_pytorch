@@ -12,18 +12,25 @@ import matplotlib.pyplot as plt
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
+        # Stage 1
         self.conv1_1 = nn.Conv2d(1, 32, kernel_size=5, padding=2)
         self.prelu1_1 = nn.PReLU()
+
         self.conv1_2 = nn.Conv2d(32, 32, kernel_size=5, padding=2)
         self.prelu1_2 = nn.PReLU()
+        # Stage 2
         self.conv2_1 = nn.Conv2d(32, 64, kernel_size=5, padding=2)
         self.prelu2_1 = nn.PReLU()
+
         self.conv2_2 = nn.Conv2d(64, 64, kernel_size=5, padding=2)
         self.prelu2_2 = nn.PReLU()
+        # Stage 3
         self.conv3_1 = nn.Conv2d(64, 128, kernel_size=5, padding=2)
         self.prelu3_1 = nn.PReLU()
+
         self.conv3_2 = nn.Conv2d(128, 128, kernel_size=5, padding=2)
         self.prelu3_2 = nn.PReLU()
+        # Stage 4
         self.preluip1 = nn.PReLU()
         self.ip1 = nn.Linear(128*3*3, 2)
         self.ip2 = nn.Linear(2, 10)
@@ -32,15 +39,19 @@ class Net(nn.Module):
         x = self.prelu1_1(self.conv1_1(x))
         x = self.prelu1_2(self.conv1_2(x))
         x = F.max_pool2d(x,2)
+
         x = self.prelu2_1(self.conv2_1(x))
         x = self.prelu2_2(self.conv2_2(x))
         x = F.max_pool2d(x,2)
+
         x = self.prelu3_1(self.conv3_1(x))
         x = self.prelu3_2(self.conv3_2(x))
         x = F.max_pool2d(x,2)
+
         x = x.view(-1, 128*3*3)
         ip1 = self.preluip1(self.ip1(x))
         ip2 = self.ip2(ip1)
+        
         return ip1, F.log_softmax(ip2, dim=1)
 
 def visualize(feat, labels, epoch):
@@ -60,10 +71,11 @@ def visualize(feat, labels, epoch):
 
 
 def train(epoch):
-    print "Training... Epoch = %d" % epoch
+    print("Training... Epoch = %d" % epoch)
     ip1_loader = []
     idx_loader = []
     for i,(data, target) in enumerate(train_loader):
+        print("i = %d" % i)
         data, target = data.to(device), target.to(device)
 
         ip1, pred = model(data)
@@ -87,7 +99,7 @@ def train(epoch):
 use_cuda = torch.cuda.is_available() and True
 device = torch.device("cuda" if use_cuda else "cpu")
 # Dataset
-trainset = datasets.MNIST('../MNIST', download=True,train=True, transform=transforms.Compose([
+trainset = datasets.MNIST('./MNIST', download=True,train=True, transform=transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.1307,), (0.3081,))]))
 train_loader = DataLoader(trainset, batch_size=128, shuffle=True, num_workers=4)
